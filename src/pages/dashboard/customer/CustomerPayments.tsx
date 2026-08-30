@@ -1,3 +1,98 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { CheckCircle2, Clock, FileText, Download } from 'lucide-react';
 
 const payments = [
@@ -85,12 +180,11 @@ export default function CustomerPayments() {
                     {getStatusBadge(payment.status)}
                   </td>
                   <td className="py-4 px-6 text-right">
-                    <button 
-                      className={`inline-flex items-center justify-center p-2 rounded-lg transition-colors ${
-                        payment.status === 'completed' 
-                          ? 'text-primary hover:bg-blue-50' 
+                    <button
+                      className={`inline-flex items-center justify-center p-2 rounded-lg transition-colors ${payment.status === 'completed'
+                          ? 'text-primary hover:bg-blue-50'
                           : 'text-gray-300 cursor-not-allowed'
-                      }`}
+                        }`}
                       disabled={payment.status !== 'completed'}
                       title="Download Receipt"
                     >
@@ -102,7 +196,7 @@ export default function CustomerPayments() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Empty State Fallback (Not shown currently because we have data) */}
         {payments.length === 0 && (
           <div className="py-16 text-center flex flex-col items-center">
