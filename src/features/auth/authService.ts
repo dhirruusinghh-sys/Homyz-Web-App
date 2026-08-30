@@ -74,6 +74,18 @@ const changePassword = async (passwordData: any) => {
   return response.data;
 };
 
+// Toggle saved property
+const toggleSavedProperty = async (propertyId: string) => {
+  const response = await axiosInstance.put(API_URL + `profile/save-property/${propertyId}`);
+  if (response.data && response.data.savedProperties) {
+    // Update local storage user data
+    const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const updatedUser = { ...existingUser, savedProperties: response.data.savedProperties };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  }
+  return response.data;
+};
+
 const authService = {
   register,
   login,
@@ -84,6 +96,7 @@ const authService = {
   googleLogin,
   updateProfile,
   changePassword,
+  toggleSavedProperty,
 };
 
 export default authService;

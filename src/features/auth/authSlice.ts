@@ -99,6 +99,24 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+// Toggle Saved Property
+export const toggleSavedProperty = createAsyncThunk(
+  'auth/toggleSavedProperty',
+  async (propertyId: string, thunkAPI) => {
+    try {
+      return await authService.toggleSavedProperty(propertyId);
+    } catch (error: any) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 // Verify Email
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
@@ -270,6 +288,21 @@ export const authSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(changePassword.rejected, (state, action: PayloadAction<any>) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(toggleSavedProperty.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(toggleSavedProperty.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        if (state.user) {
+          state.user.savedProperties = action.payload.savedProperties;
+        }
+      })
+      .addCase(toggleSavedProperty.rejected, (state, action: PayloadAction<any>) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

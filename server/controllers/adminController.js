@@ -66,12 +66,63 @@ export const getAdminOverview = async (req, res) => {
     const totalAgents = await User.countDocuments({ role: 'agent' });
     const totalProperties = await Property.countDocuments();
     
-    // Mock revenue for now
+    // Calculate property stats (added vs sold) for the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const propAggregation = await Property.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sixMonthsAgo }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          added: { $sum: 1 },
+          sold: { 
+            $sum: { $cond: [{ $eq: ["$status", "sold"] }, 1, 0] } 
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const propertiesData = propAggregation.map(item => ({
+      name: monthNames[item._id - 1],
+      added: item.added,
+      sold: item.sold
+    }));
+    
+    // Fill missing months if there's no data
+    if (propertiesData.length === 0) {
+      const currentMonth = new Date().getMonth();
+      for (let i = 5; i >= 0; i--) {
+        let m = currentMonth - i;
+        if (m < 0) m += 12;
+        propertiesData.push({ name: monthNames[m], added: 0, sold: 0 });
+      }
+    }
+
+    // Mock revenue data for now
+    const revenueData = [
+      { name: 'Jan', value: 4000 },
+      { name: 'Feb', value: 3000 },
+      { name: 'Mar', value: 2000 },
+      { name: 'Apr', value: 2780 },
+      { name: 'May', value: 1890 },
+      { name: 'Jun', value: 2390 },
+      { name: 'Jul', value: 3490 },
+    ];
+
     res.json({
       totalUsers,
       totalAgents,
       totalProperties,
-      totalRevenue: '$345,000'
+      totalRevenue: '$345,000',
+      propertiesData,
+      revenueData
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

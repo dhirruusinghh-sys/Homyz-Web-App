@@ -9,7 +9,8 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
-  googleLogin
+  googleLogin,
+  toggleSavedProperty
 } from '../controllers/authController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 
@@ -26,6 +27,7 @@ router.post('/google', googleLogin);
 router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+router.put('/profile/save-property/:id', protect, toggleSavedProperty);
 router.put('/change-password', protect, changePassword);
 
 export default router;

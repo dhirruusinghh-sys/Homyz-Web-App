@@ -329,3 +329,43 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Toggle saved property (Wishlist)
+// @route   PUT /api/auth/profile/save-property/:id
+// @access  Private
+export const toggleSavedProperty = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      const propertyId = req.params.id;
+      
+      // Check if property is already in saved properties
+      const isSaved = user.savedProperties.includes(propertyId);
+
+      if (isSaved) {
+        // Remove from saved properties
+        user.savedProperties = user.savedProperties.filter(
+          (id) => id.toString() !== propertyId.toString()
+        );
+      } else {
+        // Add to saved properties
+        user.savedProperties.push(propertyId);
+      }
+
+      await user.save();
+      
+      // Populate to return the full property objects
+      const updatedUser = await User.findById(req.user._id).populate('savedProperties');
+
+      res.json({
+        message: isSaved ? 'Property removed from saved list' : 'Property saved successfully',
+        savedProperties: updatedUser.savedProperties
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
