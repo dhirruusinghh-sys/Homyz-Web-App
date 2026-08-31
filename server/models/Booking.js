@@ -45,6 +45,11 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending',
+    }
   },
   {
     timestamps: true,
