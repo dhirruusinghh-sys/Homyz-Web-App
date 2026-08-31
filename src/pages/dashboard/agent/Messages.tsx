@@ -63,10 +63,19 @@ export default function Messages() {
       (msg.sender._id === activeChatId && msg.receiver._id === user?._id)
   );
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!messageText.trim() || !activeChatId) return;
-    dispatch(sendMessage({ receiverId: activeChatId, content: messageText }));
+    
+    const text = messageText;
     setMessageText('');
+    
+    const resultAction = await dispatch(sendMessage({ receiverId: activeChatId, content: text }));
+    
+    if (sendMessage.fulfilled.match(resultAction)) {
+      if (socket) {
+        socket.emit('newMessage', resultAction.payload);
+      }
+    }
   };
 
   return (
