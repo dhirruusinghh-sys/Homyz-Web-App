@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../../app/store';
+import type { AppDispatch, RootState } from '../../../app/store';
 import { getCustomerReviews, deleteReview } from '../../../features/reviews/reviewSlice';
 import { Star, Home, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';

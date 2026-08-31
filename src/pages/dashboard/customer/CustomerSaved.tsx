@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Heart, MapPin, Bed, Bath, Square, Trash2, FileText } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../../app/store';
+import type { AppDispatch, RootState } from '../../../app/store';
 import { toggleSavedProperty } from '../../../features/auth/authSlice';
 import { Link } from 'react-router-dom';
 

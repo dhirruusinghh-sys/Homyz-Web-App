@@ -96,7 +96,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CheckCircle2, Clock, FileText, Download, CreditCard, Loader2 } from 'lucide-react';
-import { AppDispatch, RootState } from '../../../app/store';
+import type { AppDispatch, RootState } from '../../../app/store';
 import { getBookings } from '../../../features/bookings/bookingSlice';
 import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
@@ -105,7 +105,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_t
 
 export default function CustomerPayments() {
   const dispatch = useDispatch<AppDispatch>();
-  const { bookings, isLoading } = useSelector((state: RootState) => state.booking);
+  const { bookings, isLoading } = useSelector((state: RootState) => state.bookings);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {

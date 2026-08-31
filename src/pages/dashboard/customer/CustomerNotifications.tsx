@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../../app/store';
+import type { AppDispatch, RootState } from '../../../app/store';
 import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../../../features/notifications/notificationSlice';
 import { Bell, Calendar, Home, Tag, Check, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
