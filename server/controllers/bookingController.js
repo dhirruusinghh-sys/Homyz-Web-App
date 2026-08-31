@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import Property from '../models/Property.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import sendEmail from '../utils/sendEmail.js';
 
 // @desc    Create new booking
@@ -59,6 +60,21 @@ export const createBooking = async (req, res) => {
     } catch (error) {
       console.log('Email could not be sent', error);
     }
+
+    // Create In-App Notifications
+    await Notification.create({
+      recipient: createdBooking.customer._id,
+      title: 'Booking Requested',
+      message: customerMessage,
+      type: 'booking'
+    });
+
+    await Notification.create({
+      recipient: createdBooking.agent._id,
+      title: 'New Booking Request',
+      message: agentMessage,
+      type: 'booking'
+    });
 
     res.status(201).json(createdBooking);
   } catch (error) {
@@ -199,6 +215,14 @@ export const updateBookingStatus = async (req, res) => {
       } catch (error) {
         console.log('Email could not be sent', error);
       }
+
+      // Create In-App Notification
+      await Notification.create({
+        recipient: booking.customer._id,
+        title: customerSubject,
+        message: customerMessage,
+        type: 'booking'
+      });
     }
 
     res.json(updatedBooking);

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../app/store';
-import { getPropertyById } from '../features/properties/propertySlice';
-import { MapPin, Bed, Bath, Move, CalendarDays, CheckCircle2, Building, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { MapPin, Bed, Bath, Move, CalendarDays, CheckCircle2, Building, ChevronLeft, ChevronRight, X, Star } from 'lucide-react';
+import { getPropertyReviews, createReview } from '../features/reviews/reviewSlice';
 import BookVisitModal from '../components/modals/BookVisitModal';
 import MessageAgentModal from '../components/modals/MessageAgentModal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,12 @@ export default function PropertyDetails() {
   const { id } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   const { singleProperty, isLoading } = useSelector((state: RootState) => state.property);
+  const { propertyReviews } = useSelector((state: RootState) => state.review);
+  const { user } = useSelector((state: RootState) => state.auth);
+  
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -22,6 +28,7 @@ export default function PropertyDetails() {
   useEffect(() => {
     if (id) {
       dispatch(getPropertyById(id));
+      dispatch(getPropertyReviews(id));
     }
   }, [id, dispatch]);
 
@@ -40,6 +47,16 @@ export default function PropertyDetails() {
 
   const handleNextMedia = () => setActiveMedia((prev) => (prev + 1) % allMedia.length);
   const handlePrevMedia = () => setActiveMedia((prev) => (prev - 1 + allMedia.length) % allMedia.length);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return alert('Please login to write a review');
+    setIsSubmitting(true);
+    await dispatch(createReview({ propertyId: id, rating, comment }));
+    setComment('');
+    setRating(5);
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen pt-24 pb-16">
@@ -206,6 +223,92 @@ export default function PropertyDetails() {
                 country={singleProperty.country}
                 title={singleProperty.title}
               />
+            </div>
+
+            {/* Reviews Section */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold mb-6">Reviews ({propertyReviews?.length || 0})</h2>
+              
+              {/* Review Form */}
+              {user ? (
+                <form onSubmit={handleSubmitReview} className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-lg mb-4 text-gray-900">Write a Review</h3>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onClick={() => setRating(star)}
+                          className="focus:outline-none"
+                        >
+                          <Star 
+                            className={`w-6 h-6 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      required
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all resize-none"
+                      placeholder="Share your experience..."
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 bg-primary hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </form>
+              ) : (
+                <div className="mb-8 p-6 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium">
+                  Please log in to write a review for this property.
+                </div>
+              )}
+
+              {/* Reviews List */}
+              <div className="space-y-6">
+                {propertyReviews?.length > 0 ? (
+                  propertyReviews.map((review: any) => (
+                    <div key={review._id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            {review.customer?.avatar ? (
+                               <img src={review.customer.avatar} alt={review.customer.name} className="w-full h-full object-cover" />
+                            ) : (
+                               <div className="w-full h-full flex items-center justify-center font-bold text-gray-500 text-sm">
+                                  {review.customer?.name?.charAt(0) || 'U'}
+                               </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{review.customer?.name}</p>
+                            <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm">{review.comment}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No reviews yet. Be the first to review!</p>
+                )}
+              </div>
             </div>
           </div>
 

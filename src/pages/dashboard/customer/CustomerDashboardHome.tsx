@@ -1,15 +1,28 @@
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../app/store';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../../../app/store';
 import { Home, Heart, Calendar, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getBookings } from '../../../features/bookings/bookingSlice';
+import { getNotifications } from '../../../features/notifications/notificationSlice';
 
 export default function CustomerDashboardHome() {
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
+  const { bookings } = useSelector((state: RootState) => state.bookings);
+  const { notifications } = useSelector((state: RootState) => state.notifications);
+
+  useEffect(() => {
+    dispatch(getBookings({}));
+    dispatch(getNotifications());
+  }, [dispatch]);
+
+  const unreadNotifications = notifications?.filter((n: any) => !n.read).length || 0;
 
   const stats = [
     { title: 'Saved Properties', value: user?.savedProperties?.length || 0, icon: Heart, color: 'text-red-500', bg: 'bg-red-50' },
-    { title: 'My Bookings', value: '0', icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { title: 'Notifications', value: '3', icon: Bell, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+    { title: 'My Bookings', value: bookings?.length || 0, icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { title: 'Notifications', value: unreadNotifications, icon: Bell, color: 'text-yellow-500', bg: 'bg-yellow-50' },
   ];
 
   return (

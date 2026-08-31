@@ -6,26 +6,7 @@ import { Users, Home, Calendar, TrendingUp, DollarSign, ArrowUpRight, ArrowDownR
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { motion } from 'framer-motion';
 
-const revenueData = [
-  { name: 'Jan', value: 4000 },
-  { name: 'Feb', value: 3000 },
-  { name: 'Mar', value: 2000 },
-  { name: 'Apr', value: 2780 },
-  { name: 'May', value: 1890 },
-  { name: 'Jun', value: 2390 },
-  { name: 'Jul', value: 3490 },
-];
-
-const propertiesData = [
-  { name: 'Jan', added: 40, sold: 24 },
-  { name: 'Feb', added: 30, sold: 13 },
-  { name: 'Mar', added: 20, sold: 98 },
-  { name: 'Apr', added: 27, sold: 39 },
-  { name: 'May', added: 18, sold: 48 },
-  { name: 'Jun', added: 23, sold: 38 },
-  { name: 'Jul', added: 34, sold: 43 },
-];
-
+// Mock Data Removed - Using Redux State
 const recentActivities = [
   { id: 1, text: 'New user "John Doe" registered', time: '2 mins ago', type: 'user' },
   { id: 2, text: 'Property "Luxury Villa" was sold', time: '1 hour ago', type: 'property' },
@@ -106,7 +87,7 @@ export default function AdminDashboardHome() {
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={overview?.revenueData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
@@ -161,7 +142,7 @@ export default function AdminDashboardHome() {
         <h2 className="text-lg font-bold text-gray-900 mb-6">Properties Analytics</h2>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={propertiesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={overview?.propertiesData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />

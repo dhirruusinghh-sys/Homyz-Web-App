@@ -1,43 +1,17 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../../app/store';
+import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../../../features/notifications/notificationSlice';
 import { Bell, Calendar, Home, Tag, Check, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-
-const initialNotifications = [
-  {
-    id: '1',
-    title: 'Booking Confirmed!',
-    message: 'Your visit for "Modern Villa in Beverly Hills" has been confirmed for Aug 25th at 10:00 AM.',
-    type: 'booking',
-    time: '2 hours ago',
-    read: false,
-  },
-  {
-    id: '2',
-    title: 'Price Drop Alert',
-    message: 'The price for "Luxury Penthouse" has dropped by $50,000. Check it out now!',
-    type: 'price',
-    time: 'Yesterday',
-    read: false,
-  },
-  {
-    id: '3',
-    title: 'New Property Match',
-    message: 'A new property matching your saved search criteria was just listed in Downtown Core.',
-    type: 'match',
-    time: '2 days ago',
-    read: true,
-  },
-  {
-    id: '4',
-    title: 'Welcome to Homyz',
-    message: 'Thank you for joining us! Complete your profile to get the best property recommendations.',
-    type: 'system',
-    time: '1 week ago',
-    read: true,
-  }
-];
+import { formatDistanceToNow } from 'date-fns';
 
 export default function CustomerNotifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const dispatch = useDispatch<AppDispatch>();
+  const { notifications, isLoading } = useSelector((state: RootState) => state.notifications);
+
+  useEffect(() => {
+    dispatch(getNotifications());
+  }, [dispatch]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -57,12 +31,19 @@ export default function CustomerNotifications() {
     }
   };
 
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const handleMarkAllRead = () => {
+    dispatch(markAllAsRead());
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+  const handleDeleteNotification = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    dispatch(deleteNotification(id));
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    if (!notification.read) {
+      dispatch(markAsRead(notification._id));
+    }
   };
 
   return (
@@ -73,7 +54,7 @@ export default function CustomerNotifications() {
           <p className="text-gray-500 text-sm">Stay updated on your properties and bookings</p>
         </div>
         <button 
-          onClick={markAllRead}
+          onClick={handleMarkAllRead}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
         >
           <Check className="w-4 h-4" />
@@ -82,7 +63,11 @@ export default function CustomerNotifications() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <div className="p-12 flex justify-center items-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : !notifications || notifications.length === 0 ? (
            <div className="p-12 text-center flex flex-col items-center">
              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                <Bell className="w-8 h-8 text-gray-300" />
@@ -92,10 +77,11 @@ export default function CustomerNotifications() {
            </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {notifications.map((notification) => (
+            {notifications.map((notification: any) => (
               <div 
-                key={notification.id} 
-                className={`p-5 flex gap-4 transition-colors relative group ${notification.read ? 'bg-white hover:bg-gray-50/50' : 'bg-blue-50/30 hover:bg-blue-50/50'}`}
+                key={notification._id} 
+                onClick={() => handleNotificationClick(notification)}
+                className={`p-5 flex gap-4 transition-colors relative group cursor-pointer ${notification.read ? 'bg-white hover:bg-gray-50/50' : 'bg-blue-50/30 hover:bg-blue-50/50'}`}
               >
                 {!notification.read && (
                   <div className="absolute top-1/2 -translate-y-1/2 left-0 w-1 h-12 bg-primary rounded-r-full" />
@@ -111,7 +97,7 @@ export default function CustomerNotifications() {
                       {notification.title}
                     </h4>
                     <span className="text-xs text-gray-400 whitespace-nowrap shrink-0">
-                      {notification.time}
+                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                     </span>
                   </div>
                   <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-600 font-medium'}`}>
@@ -121,7 +107,7 @@ export default function CustomerNotifications() {
 
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                   <button 
-                    onClick={() => deleteNotification(notification.id)}
+                    onClick={(e) => handleDeleteNotification(notification._id, e)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete"
                   >

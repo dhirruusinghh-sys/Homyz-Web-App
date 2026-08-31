@@ -5,6 +5,8 @@ import agentReducer from '../features/agent/agentSlice';
 import adminReducer from '../features/admin/adminSlice';
 import bookingReducer from '../features/bookings/bookingSlice';
 import messageReducer from '../features/messages/messageSlice';
+import reviewReducer from '../features/reviews/reviewSlice';
+import notificationReducer from '../features/notifications/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     admin: adminReducer,
     bookings: bookingReducer,
     messages: messageReducer,
+    review: reviewReducer,
+    notifications: notificationReducer,
   },
 });
 
