@@ -93,15 +93,20 @@
 
 
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CheckCircle2, Clock, FileText, Download } from 'lucide-react';
+import { CheckCircle2, Clock, FileText, Download, CreditCard, Loader2 } from 'lucide-react';
 import { AppDispatch, RootState } from '../../../app/store';
 import { getBookings } from '../../../features/bookings/bookingSlice';
+import { loadStripe } from '@stripe/stripe-js';
+import axios from 'axios';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_mock');
 
 export default function CustomerPayments() {
   const dispatch = useDispatch<AppDispatch>();
   const { bookings, isLoading } = useSelector((state: RootState) => state.booking);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(getBookings({}));
@@ -112,16 +117,32 @@ export default function CustomerPayments() {
       return (
         <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-200">
           <CheckCircle2 className="w-3.5 h-3.5" />
-          Completed
+          Approved
         </span>
       );
     }
     return (
       <span className="flex items-center gap-1.5 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-semibold border border-yellow-200">
         <Clock className="w-3.5 h-3.5" />
-        Pending
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
+  };
+
+  const handlePayment = async (bookingId: string) => {
+    try {
+      setProcessingId(bookingId);
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payments/create-checkout-session`, { bookingId }, { withCredentials: true });
+      const stripe = await stripePromise;
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId: data.id });
+      }
+    } catch (error) {
+      console.error('Payment Error:', error);
+      alert('Failed to initiate payment.');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   return (
@@ -140,8 +161,9 @@ export default function CustomerPayments() {
                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Date</th>
                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Property & Type</th>
                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Amount</th>
-                <th className="py-4 px-6 font-semibold text-sm text-gray-600">Status</th>
-                <th className="py-4 px-6 font-semibold text-sm text-gray-600 text-right">Receipt</th>
+                <th className="py-4 px-6 font-semibold text-sm text-gray-600">Booking Status</th>
+                <th className="py-4 px-6 font-semibold text-sm text-gray-600">Payment Status</th>
+                <th className="py-4 px-6 font-semibold text-sm text-gray-600 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -169,17 +191,34 @@ export default function CustomerPayments() {
                   <td className="py-4 px-6">
                     {getStatusBadge(booking.status)}
                   </td>
+                  <td className="py-4 px-6">
+                    {booking.paymentStatus === 'paid' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        Paid
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                        Unpaid
+                      </span>
+                    )}
+                  </td>
                   <td className="py-4 px-6 text-right">
-                    <button
-                      className={`inline-flex items-center justify-center p-2 rounded-lg transition-colors ${booking.status === 'completed' || booking.status === 'approved'
-                          ? 'text-primary hover:bg-blue-50'
-                          : 'text-gray-300 cursor-not-allowed'
-                        }`}
-                      disabled={!(booking.status === 'completed' || booking.status === 'approved')}
-                      title="Download Receipt"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
+                    {booking.status === 'approved' && booking.paymentStatus !== 'paid' ? (
+                      <button
+                        onClick={() => handlePayment(booking._id)}
+                        disabled={processingId === booking._id}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-primary hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                      >
+                        {processingId === booking._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4 mr-2" />}
+                        Pay Token
+                      </button>
+                    ) : booking.paymentStatus === 'paid' ? (
+                      <button className="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-blue-50 transition-colors" title="Download Receipt">
+                        <Download className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400">Not available</span>
+                    )}
                   </td>
                 </tr>
               ))}

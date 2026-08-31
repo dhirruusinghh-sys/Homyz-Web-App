@@ -63,6 +63,7 @@ import CustomerMessages from './pages/dashboard/customer/CustomerMessages'
 // ── Pages
 import PropertiesPage from './pages/PropertiesPage'
 import PropertyDetails from './pages/PropertyDetails'
+import PaymentSuccess from './pages/PaymentSuccess'
 
 // ── Hooks
 import { useLenis }  from './hooks/useLenis'
@@ -138,6 +139,9 @@ export default function App() {
                 
                 {/* Property Details Page */}
                 <Route path="/properties/:id" element={<><Navbar /><PropertyDetails /><Footer /></>} />
+                
+                {/* Payment Success Page */}
+                <Route path="/payment-success" element={<><Navbar /><PaymentSuccess /><Footer /></>} />
 
                 {/* Auth Routes */}
                 <Route path="/login" element={<Login />} />

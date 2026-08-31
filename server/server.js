@@ -19,7 +19,10 @@ import agentRoutes from './routes/agentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import { initSocket } from './socket.js';
+import Stripe from 'stripe';
+import Booking from './models/Booking.js';
 
 dotenv.config();
 
@@ -39,6 +42,37 @@ app.use(cors({ origin: clientUrls, credentials: true }));
 // app.use(mongoSanitize()); // Disabled due to Express 5 compatibility issue with req.query
 
 // Body Parser
+
+// Stripe Webhook MUST be before express.json()
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const payload = req.body;
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('Webhook Error:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const bookingId = session.metadata.bookingId;
+    if (bookingId) {
+      try {
+        await Booking.findByIdAndUpdate(bookingId, { paymentStatus: 'paid' });
+        console.log(`Payment confirmed for booking ${bookingId}`);
+      } catch (err) {
+        console.error('Error updating booking payment status:', err);
+      }
+    }
+  }
+
+  res.status(200).json({ received: true });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -61,6 +95,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');
