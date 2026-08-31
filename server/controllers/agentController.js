@@ -13,12 +13,13 @@ export const getAgentOverview = async (req, res) => {
     const totalListings = properties.length;
     const activeListings = properties.filter(p => p.status === 'approved').length;
     const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+    const totalViews = properties.reduce((acc, p) => acc + (p.views || 0), 0);
     
     res.json({
       totalListings,
       activeListings,
       pendingBookings,
-      totalViews: 0, // Placeholder
+      totalViews,
       recentBookings: bookings.slice(0, 5) // Recent 5
     });
   } catch (error) {

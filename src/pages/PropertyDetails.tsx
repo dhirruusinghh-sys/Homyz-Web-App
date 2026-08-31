@@ -8,6 +8,7 @@ import BookVisitModal from '../components/modals/BookVisitModal';
 import MessageAgentModal from '../components/modals/MessageAgentModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyMap from '../components/ui/PropertyMap';
+import axios from 'axios';
 
 export default function PropertyDetails() {
   const { id } = useParams();
@@ -29,6 +30,9 @@ export default function PropertyDetails() {
     if (id) {
       dispatch(getPropertyById(id));
       dispatch(getPropertyReviews(id));
+      
+      // Track property view
+      axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/properties/${id}/view`).catch(err => console.error(err));
     }
   }, [id, dispatch]);
 

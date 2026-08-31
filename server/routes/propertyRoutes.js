@@ -5,7 +5,8 @@ import {
   createProperty,
   updateProperty,
   deleteProperty,
-  getAgentProperties
+  getAgentProperties,
+  incrementPropertyViews
 } from '../controllers/propertyController.js';
 import { protect, agent } from '../middlewares/authMiddleware.js';
 import { upload } from '../config/cloudinary.js';
@@ -29,5 +30,7 @@ router.route('/:id')
   .get(getPropertyById)
   .put(protect, agent, propertyUploads, updateProperty)
   .delete(protect, agent, deleteProperty);
+
+router.post('/:id/view', incrementPropertyViews);
 
 export default router;

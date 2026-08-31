@@ -220,3 +220,24 @@ export const deleteProperty = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Increment property views
+// @route   POST /api/properties/:id/view
+// @access  Public
+export const incrementPropertyViews = async (req, res) => {
+  try {
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!property) {
+      return res.status(404).json({ message: 'Property not found' });
+    }
+
+    res.json({ message: 'Views incremented', views: property.views });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

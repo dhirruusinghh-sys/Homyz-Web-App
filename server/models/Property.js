@@ -71,6 +71,9 @@ const propertySchema = new mongoose.Schema(
     featured: { type: Boolean, default: false },
     verified: { type: Boolean, default: false },
     
+    // Analytics
+    views: { type: Number, default: 0 },
+    
     // Status
     status: {
       type: String,
