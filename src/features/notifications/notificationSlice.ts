@@ -1,7 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import notificationService from './notificationService';
 
-const initialState = {
+interface NotificationState {
+  notifications: any[];
+  isError: boolean;
+  isSuccess: boolean;
+  isLoading: boolean;
+  message: string;
+}
+
+const initialState: NotificationState = {
   notifications: [],
   isError: false,
   isSuccess: false,

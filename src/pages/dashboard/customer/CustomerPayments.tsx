@@ -135,7 +135,7 @@ export default function CustomerPayments() {
       const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payments/create-checkout-session`, { bookingId }, { withCredentials: true });
       const stripe = await stripePromise;
       if (stripe) {
-        await stripe.redirectToCheckout({ sessionId: data.id });
+        await (stripe as any).redirectToCheckout({ sessionId: data.id });
       }
     } catch (error) {
       console.error('Payment Error:', error);
