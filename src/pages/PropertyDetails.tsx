@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../app/store';
 import { MapPin, Bed, Bath, Move, CalendarDays, CheckCircle2, Building, ChevronLeft, ChevronRight, X, Star } from 'lucide-react';
 import { getPropertyReviews, createReview } from '../features/reviews/reviewSlice';
-import { getPropertyById } from '../features/property/propertySlice';
+import { getPropertyById } from '../features/properties/propertySlice';
 import BookVisitModal from '../components/modals/BookVisitModal';
 import MessageAgentModal from '../components/modals/MessageAgentModal';
 import { motion, AnimatePresence } from 'framer-motion';
